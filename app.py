@@ -903,16 +903,22 @@ def get_market_data():
 @app.route('/market-news', methods=['GET'])
 def get_market_news():
     try:
-        # Fetch news for Nifty 50 index
-        ticker = yf.Ticker("^NSEI")
-        raw_news = ticker.news
-        
+        tickers = [
+            "SPY",        
+            "^NSEI",     
+            "^BSESN",  
+        ]
+
+        raw_news = []
+
+        for symbol in tickers:
+            ticker = yf.Ticker(symbol)
+            raw_news.extend(ticker.news)
+
         flattened_news = []
-        # Limit to the latest 5 news items
         for item in raw_news[:5]:
+
             content = item.get('content', {})
-            
-            # Extracting the best quality thumbnail if it exists
             thumbnail_url = ""
             thumb_data = content.get('thumbnail')
             if thumb_data and 'resolutions' in thumb_data:
@@ -920,18 +926,35 @@ def get_market_news():
 
             flattened_news.append({
                 "title": content.get('title', 'No Title'),
-                "summary": content.get('summary', 'No Summary Available'),
-                "publisher": content.get('provider', {}).get('displayName', 'Market Source'),
+                "summary": content.get(
+                    'summary',
+                    'No Summary Available'
+                ),
+                "publisher": content.get(
+                    'provider',
+                    {}
+                ).get(
+                    'displayName',
+                    'Market Source'
+                ),
                 "pubDate": content.get('pubDate', ''),
-                "url": content.get('canonicalUrl', {}).get('url', ''),
+                "url": content.get(
+                    'canonicalUrl',
+                    {}
+                ).get(
+                    'url',
+                    ''
+                ),
                 "image": thumbnail_url
             })
             print(flattened_news)
         return jsonify(flattened_news)
     except Exception as e:
         print(f"News Fetch Error: {e}")
-        return jsonify({"error": "Failed to fetch news"}), 500
-    
+
+        return jsonify({
+            "error": "Failed to fetch news"
+        }), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

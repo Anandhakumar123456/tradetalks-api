@@ -1,8 +1,14 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify,request
 import yfinance as yf
 import pandas as pd
 import numpy as np
 from flask_cors import CORS
+from services.upstox_service import (
+    market_api,
+    options_api,
+    ACCESS_TOKEN
+)
+import requests
 
 app = Flask(__name__)
 
@@ -954,6 +960,126 @@ def get_market_news():
 
         return jsonify({
             "error": "Failed to fetch news"
+        }), 500
+
+@app.route("/option-chain")
+def option_chain():
+
+    try:
+
+        instrument_key = request.args.get(
+                "instrument_key"
+            )
+
+        expiry =request.args.get(
+                "expiry"
+            )
+
+        url = "https://api.upstox.com/v2/option/chain"
+
+        params = {
+
+            "instrument_key":
+                instrument_key,
+
+            "expiry_date":
+                expiry
+        }
+
+        headers = {
+
+            "Content-Type":
+                "application/json",
+
+            "Accept":
+                "application/json",
+
+            "Authorization":
+                f"Bearer {ACCESS_TOKEN}"
+        }
+
+        response = requests.get(
+
+            url,
+
+            params=params,
+
+            headers=headers
+        )
+
+        data = response.json()
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+        
+        
+
+@app.route("/expiry-list")
+def expiry_list():
+
+    try:
+
+        instrument_key = request.args.get(
+                "instrument_key"
+            )
+
+        url ="https://api.upstox.com/v2/option/contract"
+
+        params = {
+
+            "instrument_key":
+                instrument_key
+        }
+
+        headers = {
+
+            "Accept":
+                "application/json",
+
+            "Authorization":
+                f"Bearer {ACCESS_TOKEN}"
+        }
+
+        response = requests.get(
+
+            url,
+
+            params=params,
+
+            headers=headers
+        )
+
+        data = response.json()
+
+        contracts = data["data"]
+
+        expiries = sorted(
+            list(
+                set(
+                    item["expiry"]
+                    for item in contracts
+                )
+            )
+        )
+
+        return jsonify({
+
+            "current_expiry":
+                expiries[0],
+
+            "expiries":
+                expiries
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
         }), 500
 
 if __name__ == "__main__":

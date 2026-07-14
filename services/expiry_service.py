@@ -2,13 +2,17 @@ import requests
 from services.upstox_service import ACCESS_TOKEN
 from services.cache_service import cache
 from config import CACHE_EXPIRY
+from utils.logger import logger
 
 
 def get_expiry_list(instrument_key):
     cache_key = f"expiry_list_{instrument_key}"
     cached = cache.get(cache_key)
     if cached:
+        logger.debug(f"[High-level Cache Hit] Expiry list for instrument_key {instrument_key}")
         return cached
+
+    logger.info(f"[High-level Cache Miss / API Fetch] Fetching expiry list from Upstox API for {instrument_key}")
 
     url = "https://api.upstox.com/v2/option/contract"
 

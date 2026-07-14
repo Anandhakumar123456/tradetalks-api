@@ -3,6 +3,7 @@ import requests
 from dotenv import load_dotenv
 from services.cache_service import cache
 from config import CACHE_NEWS
+from utils.logger import logger
 
 load_dotenv()
 
@@ -15,7 +16,10 @@ def get_market_news():
     cache_key = "market_news"
     cached = cache.get(cache_key)
     if cached:
+        logger.debug("[High-level Cache Hit] Market news")
         return cached
+
+    logger.info("[High-level Cache Miss / API Fetch] Fetching market news from NewsAPI")
 
     params = {
         "q": "(stock market OR nifty OR sensex OR bank nifty OR dow jones OR nasdaq OR wall street)",

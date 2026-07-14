@@ -1,6 +1,7 @@
 from services.yahoo_service import get_ticker
 from services.cache_service import cache
 from config import CACHE_YAHOO
+from utils.logger import logger
 
 
 def calculate_valuation_score(pe, peg, pb, ev_ebitda, div_yield):
@@ -69,7 +70,10 @@ def get_valuation(symbol):
     cache_key = f"valuation_{symbol}"
     cached = cache.get(cache_key)
     if cached:
+        logger.debug(f"[High-level Cache Hit] Valuation analysis for {symbol}")
         return cached
+
+    logger.info(f"[High-level Cache Miss / Calculating] Computing Valuation analysis for {symbol}")
 
     ticker = get_ticker(symbol)
 

@@ -1,6 +1,8 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
+import time
+from utils.logger import logger
 
 from routes.market import market_bp
 from routes.option import option_bp
@@ -40,6 +42,22 @@ def create_app():
     app.register_blueprint(risk_bp)
     app.register_blueprint(suitability_bp)
 
+    @app.before_request
+    def start_timer():
+        request.start_time = time.time()
+
+    @app.after_request
+    def log_request(response):
+        if request.path == "/favicon.ico":
+            return response
+        duration = time.time() - getattr(request, "start_time", time.time())
+        duration_ms = duration * 1000
+        logger.info(
+            f"{request.remote_addr} - {request.method} {request.path} "
+            f"- {response.status_code} - {duration_ms:.2f}ms"
+        )
+        return response
+
     @app.route("/")
     def home():
         return jsonify({
@@ -50,12 +68,14 @@ def create_app():
 
     @app.errorhandler(404)
     def not_found(error):
+        logger.warning(f"404 Not Found: {request.path}")
         return jsonify({
             "error": "Endpoint not found"
         }), 404
 
     @app.errorhandler(500)
     def internal_error(error):
+        logger.error(f"500 Internal Server Error at {request.path}: {str(error)}", exc_info=True)
         return jsonify({
             "error": "Internal Server Error"
         }), 500

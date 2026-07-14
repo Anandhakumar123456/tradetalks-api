@@ -1,6 +1,7 @@
 from services.yahoo_service import get_ticker
 from services.cache_service import cache
 from config import CACHE_YAHOO
+from utils.logger import logger
 
 def safe_get(df, key):
     if key in df.index:
@@ -54,7 +55,10 @@ def get_debt(symbol):
     cache_key = f"debt_{symbol}"
     cached = cache.get(cache_key)
     if cached:
+        logger.debug(f"[High-level Cache Hit] Debt analysis for {symbol}")
         return cached
+
+    logger.info(f"[High-level Cache Miss / Calculating] Computing Debt analysis for {symbol}")
 
     ticker = get_ticker(symbol)
 

@@ -15,13 +15,27 @@ class CachedTicker:
     @property
     def info(self):
         cache_key = f"yf_info_{self.symbol}"
+
         cached = cache.get(cache_key)
         if cached is not None:
             logger.debug(f"[Low-level Cache Hit] Yahoo Finance info for {self.symbol}")
             return cached
+
         logger.info(f"[Low-level Cache Miss / API Fetch] Fetching Yahoo Finance info for {self.symbol}")
-        data = self.ticker.info
+
+        try:
+            data = self.ticker.info
+
+            if not data:
+                logger.warning(f"No Yahoo data for {self.symbol}")
+                data = {}
+
+        except Exception as e:
+            logger.error(f"Yahoo Finance Error ({self.symbol}): {e}")
+            data = {}
+
         cache.set(cache_key, data, CACHE_YAHOO)
+
         return data
 
     def get_info(self):

@@ -7,7 +7,7 @@ from upstox_client.rest import ApiException
 load_dotenv()
 
 ACCESS_TOKEN = os.getenv("UPSTOX_ACCESS_TOKEN")
-print("TOKEN:", ACCESS_TOKEN[:20])
+# print("TOKEN:", ACCESS_TOKEN[:20])
 
 if not ACCESS_TOKEN:
     raise Exception("UPSTOX_ACCESS_TOKEN not found in .env")

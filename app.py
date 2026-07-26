@@ -1,21 +1,25 @@
-from flask import Flask, jsonify, request
+import time
 from flask_cors import CORS
 from dotenv import load_dotenv
-import time
 from utils.logger import logger
-
-from routes.market import market_bp
+from routes.news import news_bp
+from routes.risk import risk_bp
+from routes.debt import debt_bp
 from routes.option import option_bp
 from routes.expiry import expiry_bp
-from routes.news import news_bp
-from routes.fundamentals import fundamentals_bp
-from routes.dividend import dividend_bp
+from routes.market import market_bp
 from routes.health import health_bp
-from routes.debt import debt_bp
-from routes.industry_growth import industry_growth_bp
+from routes.dividend import dividend_bp
 from routes.valuation import valuation_bp
-from routes.risk import risk_bp
+from flask import Flask, jsonify, request
+from scheduler import start_market_scheduler
 from routes.suitability import suitability_bp
+from routes.notification import notification_bp
+from routes.fundamentals import fundamentals_bp
+from routes.industry_growth import industry_growth_bp
+from services.firebase_service import send_notification
+from scheduler.learning_scheduler import check_learning_reminders
+from scheduler.startup import start_all_schedulers
 
 
 # Load environment variables
@@ -41,6 +45,9 @@ def create_app():
     app.register_blueprint(valuation_bp)
     app.register_blueprint(risk_bp)
     app.register_blueprint(suitability_bp)
+    app.register_blueprint(notification_bp)
+
+    start_all_schedulers()
 
     @app.before_request
     def start_timer():
@@ -86,4 +93,4 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

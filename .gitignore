@@ -34,3 +34,6 @@ build/
 
 # Misc
 *.sqlite3
+
+# firebase key
+serviceAccountKey.json

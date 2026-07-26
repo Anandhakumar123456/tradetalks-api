@@ -2,18 +2,32 @@
 Firebase service for sending user and topic notifications.
 """
 
+import os
+import json
+
 import firebase_admin
 from firebase_admin import credentials, firestore, messaging
 
 from utils.logger import logger
 
-
 SERVICE_ACCOUNT_KEY = "serviceAccountKey.json"
 USERS_COLLECTION = "users"
 
+SERVICE_ACCOUNT_KEY = "serviceAccountKey.json"
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(SERVICE_ACCOUNT_KEY)
+
+    if os.path.exists(SERVICE_ACCOUNT_KEY):
+        # Local development
+        cred = credentials.Certificate(SERVICE_ACCOUNT_KEY)
+
+    else:
+        # Render
+        service_account = json.loads(
+            os.environ["FIREBASE_SERVICE_ACCOUNT"]
+        )
+        cred = credentials.Certificate(service_account)
+
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()

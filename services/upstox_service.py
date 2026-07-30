@@ -19,3 +19,4 @@ api_client = upstox_client.ApiClient(configuration)
 
 market_api = upstox_client.MarketQuoteApi(api_client)
 options_api = upstox_client.OptionsApi(api_client)
+holiday_api = upstox_client.MarketHolidaysAndTimingsApi(api_client)

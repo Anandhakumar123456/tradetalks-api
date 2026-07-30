@@ -12,13 +12,10 @@ from routes.health import health_bp
 from routes.dividend import dividend_bp
 from routes.valuation import valuation_bp
 from flask import Flask, jsonify, request
-from scheduler import start_market_scheduler
 from routes.suitability import suitability_bp
 from routes.notification import notification_bp
 from routes.fundamentals import fundamentals_bp
 from routes.industry_growth import industry_growth_bp
-from services.firebase_service import send_notification
-from scheduler.learning_scheduler import check_learning_reminders
 from scheduler.startup import start_all_schedulers
 
 

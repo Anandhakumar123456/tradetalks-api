@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from services.market_service import get_market_data
+from services.websocket_broadcaster import broadcast
 
 market_bp = Blueprint("market", __name__)
 

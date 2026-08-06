@@ -1,4 +1,5 @@
 import time
+import events.socket_events
 from flask_cors import CORS
 from dotenv import load_dotenv
 from utils.logger import logger
@@ -12,12 +13,14 @@ from routes.health import health_bp
 from routes.dividend import dividend_bp
 from routes.valuation import valuation_bp
 from flask import Flask, jsonify, request
+from services.socket_service import socketio
 from routes.suitability import suitability_bp
 from routes.notification import notification_bp
 from routes.fundamentals import fundamentals_bp
-from routes.industry_growth import industry_growth_bp
 from scheduler.startup import start_all_schedulers
-
+from routes.industry_growth import industry_growth_bp
+from routes.market_snapshot import market_snapshot_bp
+from services.upstox_feed_service import start_upstox_feed
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +35,7 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(market_bp)
     app.register_blueprint(news_bp)
+    app.register_blueprint(market_snapshot_bp)
     app.register_blueprint(option_bp)
     app.register_blueprint(expiry_bp)
     app.register_blueprint(fundamentals_bp)
@@ -86,8 +90,18 @@ def create_app():
 
     return app
 
-
 app = create_app()
 
+socketio.init_app(app)
+
+start_upstox_feed()
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=5000,
+        debug=False,
+        allow_unsafe_werkzeug=True,
+    )

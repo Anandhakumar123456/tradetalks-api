@@ -35,6 +35,15 @@ def get_option_chain(instrument_key, expiry):
 
     response.raise_for_status()
 
+    # result = response.json()
+    # cache.set(cache_key, result, ttl=CACHE_OPTION)
+    # return result
     result = response.json()
+
+    # if result.get("data"):
+    #     print("========== FIRST STRIKE ==========")
+    #     print(result["data"][0])
+    #     print("==================================")
+
     cache.set(cache_key, result, ttl=CACHE_OPTION)
     return result

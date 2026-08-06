@@ -7,6 +7,7 @@ import time
 class MarketCacheService:
 
     def __init__(self):
+        print("MarketCacheService Instance:", id(self))
         self._lock = Lock()
 
         self._market_data = []
@@ -31,6 +32,7 @@ class MarketCacheService:
                 self._save_to_disk()
 
                 self._last_save_time = current_time
+                print("SAVE INSTANCE:", id(self))
 
     def load(self):
 
@@ -41,6 +43,8 @@ class MarketCacheService:
 
         with open(self._file_path, "w") as file:
             json.dump(self._market_data, file)
+        print("✅ JSON SAVED")
+        print(os.path.abspath(self._file_path))
 
     def _load_from_disk(self):
 

@@ -43,7 +43,7 @@ def subscribe_option_chain(data):
     )
 
     # -----------------------------
-    # Fetch option chain
+    # Fetch Option Chain
     # -----------------------------
     try:
         option_data = get_option_chain(
@@ -92,11 +92,14 @@ def subscribe_option_chain(data):
 
     print(f"📡 Subscribing {len(new_keys)} new contracts")
 
-    subscribe_option_keys(new_keys)
+    success = subscribe_option_keys(new_keys)
 
-    subscribed_option_keys.update(new_keys)
+    if success:
+        subscribed_option_keys.update(new_keys)
 
-    print(
-        f"✅ Total Active Option Contracts: "
-        f"{len(subscribed_option_keys)}"
-    )
+        print(
+            f"✅ Total Active Option Contracts: "
+            f"{len(subscribed_option_keys)}"
+        )
+    else:
+        print("❌ Subscription failed. Will retry on next request.")

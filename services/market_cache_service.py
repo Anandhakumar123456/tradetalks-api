@@ -19,7 +19,7 @@ class MarketCacheService:
         self._load_from_disk()
 
     def save(self, data):
-        print(f"💾 SAVE CALLED : {len(data)} items")
+        # print(f"💾 SAVE CALLED : {len(data)} items")
         with self._lock:
 
             self._market_data = data.copy()

@@ -46,7 +46,7 @@ def on_error(error):
 
 
 def on_message(message):
-    print("🔥 MESSAGE RECEIVED")
+    # print("🔥 MESSAGE RECEIVED")
 
     if "feeds" not in message:
         return
@@ -140,7 +140,7 @@ def on_message(message):
     if market_payload:
 
         # Save latest snapshot (RAM + JSON)
-        print(f"💾 Saving snapshot: {len(market_payload)} items")
+        # print(f"💾 Saving snapshot: {len(market_payload)} items")
         market_cache.save(market_payload)
 
         # Send to Flutter

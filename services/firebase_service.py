@@ -4,16 +4,13 @@ Firebase service for sending user and topic notifications.
 
 import os
 import json
-
 import firebase_admin
+from utils.logger import logger
 from firebase_admin import credentials, firestore, messaging
 
-from utils.logger import logger
 
 SERVICE_ACCOUNT_KEY = "serviceAccountKey.json"
 USERS_COLLECTION = "users"
-
-SERVICE_ACCOUNT_KEY = "serviceAccountKey.json"
 
 if not firebase_admin._apps:
 

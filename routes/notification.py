@@ -11,7 +11,7 @@ notification_bp = Blueprint("notification", __name__)
 TEST_UID = "z49G1E3m8jamu4qS2QL9ZpE5tkz1"
 
 TEST_TITLE = "TradeTalks 🚀"
-TEST_BODY = "Hello Boss! Push Notification Working Successfully 🎉"
+TEST_BODY = "Hello! Push Notification Working Successfully 🎉"
 TOPIC_NAME = "tradetalks_all"
 
 

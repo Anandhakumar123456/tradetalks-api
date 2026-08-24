@@ -76,8 +76,6 @@ def create_app():
 
         if not _feed_started:
 
-            print("🚀 Starting Upstox Feed...")
-
             start_upstox_feed()
 
             _feed_started = True

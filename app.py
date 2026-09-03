@@ -69,17 +69,6 @@ def create_app():
     # Start Upstox Feed only once
     # -----------------------------
 
-    @app.before_request
-    def ensure_feed():
-
-        global _feed_started
-
-        if not _feed_started:
-
-            start_upstox_feed()
-
-            _feed_started = True
-
     # -----------------------------
     # Request Logging
     # -----------------------------
@@ -150,6 +139,7 @@ def create_app():
             }
         ), 500
 
+    start_upstox_feed()
     return app
 
 

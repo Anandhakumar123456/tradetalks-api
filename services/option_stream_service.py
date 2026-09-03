@@ -36,16 +36,19 @@ def subscribe_option_keys(option_keys):
 
         print(
             f"📡 Subscribing "
-            f"{len(option_keys)} option instruments"
+            f"{len(option_keys)} option instruments in batches of 50"
         )
 
-        streamer.subscribe(
-            option_keys,
-            "full",
-        )
+        chunk_size = 50
+        for i in range(0, len(option_keys), chunk_size):
+            chunk = option_keys[i:i + chunk_size]
+            streamer.subscribe(
+                chunk,
+                "full",
+            )
 
         print(
-            "✅ Option subscription request sent"
+            f"✅ Option subscription request sent ({len(option_keys)} instruments)"
         )
 
         return True
@@ -96,15 +99,18 @@ def unsubscribe_option_keys(option_keys):
 
         print(
             f"📤 Unsubscribing "
-            f"{len(option_keys)} option instruments"
+            f"{len(option_keys)} option instruments in batches of 50"
         )
 
-        streamer.unsubscribe(
-            option_keys,
-        )
+        chunk_size = 50
+        for i in range(0, len(option_keys), chunk_size):
+            chunk = option_keys[i:i + chunk_size]
+            streamer.unsubscribe(
+                chunk,
+            )
 
         print(
-            "✅ Option unsubscription request sent"
+            f"✅ Option unsubscription request sent ({len(option_keys)} instruments)"
         )
 
         return True
@@ -126,4 +132,4 @@ def unsubscribe_option_keys(option_keys):
 
         traceback.print_exc()
 
-        return False
+        return False

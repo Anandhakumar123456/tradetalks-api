@@ -91,6 +91,39 @@ feed_subscribed_option_keys = set()
 feed_subscription_lock = threading.Lock()
 
 
+def sync_feed_option_keys(keys):
+    """
+    Synchronize active option subscription keys from socket_events
+    to feed_subscribed_option_keys so that Upstox reconnects
+    can restore all active option contracts.
+    """
+    with feed_subscription_lock:
+        global feed_subscribed_option_keys
+        feed_subscribed_option_keys = set(keys)
+    print(f"🔄 Sync Feed Option Keys: {len(feed_subscribed_option_keys)} active contract(s) registered for Upstox feed")
+
+
+
+def cleanup_streamer():
+    global streamer
+    global connected
+
+    with streamer_lock:
+        current_streamer = streamer
+        streamer = None
+
+    with connection_lock:
+        connected = False
+
+    if current_streamer is not None:
+        try:
+            current_streamer.disconnect()
+            print("🧹 Old Upstox streamer disconnected")
+        except Exception as e:
+            print(
+                f"⚠️ Failed to disconnect old streamer: {e}"
+            )
+
 # ============================================================
 # CREATE STREAMER
 # ============================================================
@@ -240,23 +273,26 @@ def on_open(generation, *args):
         )
 
     if not option_keys:
+        print("ℹ️ No active option subscriptions to restore on Upstox connect")
         return
 
     try:
+        print(f"📡 Restoring {len(option_keys)} option subscriptions to Upstox feed...")
         current_streamer.subscribe(
             option_keys,
             "full",
         )
 
         print(
-            f"📡 Restored {len(option_keys)} "
-            "option subscriptions"
+            f"✅ Successfully restored {len(option_keys)} "
+            f"option subscription(s) to Upstox feed. Sample keys: {option_keys[:3]}"
         )
 
     except Exception as e:
         print(
             f"❌ Failed to restore option subscriptions: {e}"
         )
+
 
 
 # ============================================================
@@ -403,6 +439,12 @@ def reconnect_worker():
             )
 
             try:
+
+                # ------------------------------------------------
+                # Clean old streamer
+                # ------------------------------------------------
+
+                cleanup_streamer()
 
                 # ------------------------------------------------
                 # Create and connect a new streamer
@@ -758,26 +800,25 @@ def on_message(message):
                 )
 
     # ========================================================
-    # OPTION UPDATE
+    # OPTION UPDATE (Batch List Broadcast)
     # ========================================================
 
     if changed_options:
 
-        for option in changed_options:
+        try:
+            sample_keys = [opt.get("instrument_key") for opt in changed_options[:3]]
+            socketio.emit(
+                "option_update",
+                changed_options,
+                namespace="/",
+            )
 
-            try:
+        except Exception as e:
 
-                socketio.emit(
-                    "option_update",
-                    option,
-                    namespace="/",
-                )
+            print(
+                f"⚠️ Option socket batch emit failed: {e}"
+            )
 
-            except Exception as e:
-
-                print(
-                    f"⚠️ Option socket emit failed: {e}"
-                )
 
 
 # ============================================================
@@ -786,51 +827,50 @@ def on_message(message):
 
 def start_upstox_feed():
     """
-    Start the Upstox feed exactly once.
+    Start the Upstox feed once.
 
-    If initial connection fails, the controlled reconnect
-    worker takes over.
+    If the feed is already connected, do nothing.
+    If a reconnect worker is already handling the connection,
+    do nothing.
     """
 
-    global streamer
     global connected
 
-    with streamer_lock:
+    with connection_lock:
+        if connected:
+            print("ℹ️ Upstox Feed already connected")
+            return
 
-        with connection_lock:
+        if reconnect_running:
+            print("ℹ️ Upstox reconnect worker already running")
+            return
 
-            if connected:
+    print("🚀 Starting Upstox Feed...")
+
+    try:
+        with streamer_lock:
+            current_streamer = streamer
+
+        if current_streamer is not None:
+            try:
+                current_streamer.disconnect()
+            except Exception as e:
                 print(
-                    "ℹ️ Upstox Feed already connected"
-                )
-                return
-
-            if streamer is not None:
-                print(
-                    "ℹ️ Upstox streamer already exists"
+                    f"⚠️ Failed to cleanup old streamer: {e}"
                 )
 
+        new_streamer = create_streamer()
+        new_streamer.connect()
+
+    except Exception as e:
         print(
-            "🚀 Starting Upstox Feed..."
+            f"❌ Failed to start Upstox Feed: {e}"
         )
 
-        try:
+        with connection_lock:
+            connected = False
 
-            new_streamer = create_streamer()
-
-            new_streamer.connect()
-
-        except Exception as e:
-
-            print(
-                f"❌ Failed to start Upstox Feed: {e}"
-            )
-
-            with connection_lock:
-                connected = False
-
-            start_reconnect()
-
+        start_reconnect()
 
 # ============================================================
 # GET STREAMER
